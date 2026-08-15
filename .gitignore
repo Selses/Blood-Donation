@@ -6,6 +6,22 @@
 
 # Maven target directory
 target/
+backend/target/
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# Database files
+backend/data/
+*.db
+*.mv.db
+*.trace.db
+
+# VSIX / Packages
+*.vsix
 
 # IDE files
 .vscode/
@@ -28,3 +44,4 @@ target/
 # Virtual machine crash logs
 hs_err_pid*
 replay_pid*
+

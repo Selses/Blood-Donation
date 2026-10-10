@@ -1,26 +1,23 @@
 services:
-  # 1. Spring Boot Backend Web Service
+  # 1. Spring Boot Backend Web Service (Render uses env: docker or image for Java 17 Spring Boot)
   - type: web
     name: blood-donation-backend
-    env: java
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     region: oregon
     plan: free
-    buildCommand: cd backend && mvn clean package -DskipTests
-    startCommand: cd backend && java -jar target/blood-donation-0.0.1-SNAPSHOT.jar
     healthCheckPath: /api/test
     autoDeploy: true
 
-  # 2. React Vite Frontend Static Site
+  # 2. React Vite Frontend Static Site (type: web with runtime: static, no region required)
   - type: web
     name: blood-donation-frontend
-    env: static
-    region: oregon
-    plan: free
+    runtime: static
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     autoDeploy: true
     routes:
-      # SPA rewrite rule so React Router works on page refreshes
       - type: rewrite
         source: /*
         destination: /index.html

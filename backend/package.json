@@ -1,0 +1,10 @@
+{
+  "name": "blood-donation-backend",
+  "version": "1.0.0",
+  "description": "Spring Boot Backend Runner",
+  "scripts": {
+    "dev": "mvnw.cmd spring-boot:run",
+    "start": "mvnw.cmd spring-boot:run",
+    "build": "mvnw.cmd clean package"
+  }
+}

@@ -13,7 +13,10 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  ShieldCheck,
+  Droplets,
+  Clock
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -41,20 +44,15 @@ const Dashboard = () => {
     setLoading(true);
     setError('');
     try {
-      // 1. Fetch Blood Requests
       const requests = await bloodRequestService.getAllRequests().catch(() => []);
-      
-      // 2. Fetch Notifications
       const notifs = await notificationService.getMyNotifications().catch(() => []);
       const unreadCountData = await notificationService.getUnreadCount().catch(() => ({ count: 0 }));
 
-      // 3. Fetch Inventory (if organization or admin)
       let inventory = [];
       if (['HOSPITAL', 'BLOOD_BANK', 'ADMIN'].includes(user?.role)) {
         inventory = await inventoryService.getMyInventory().catch(() => []);
       }
 
-      // Calculate aggregated metrics from real API data
       const pending = requests.filter(r => r.status === 'PENDING').length;
       const matched = requests.filter(r => r.status === 'MATCHED').length;
       const accepted = requests.filter(r => r.status === 'ACCEPTED').length;
@@ -72,7 +70,7 @@ const Dashboard = () => {
         totalStockUnits: totalUnits
       });
 
-      setRecentRequests(requests.slice(0, 5));
+      setRecentRequests(requests.slice(0, 6));
       setRecentNotifications(notifs.slice(0, 4));
     } catch (err) {
       setError(err.message || 'Failed to load dashboard data.');
@@ -102,27 +100,35 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="container py-5 text-center">
-        <div className="card loading-card">
-          <Activity className="animate-spin text-primary mx-auto mb-3" size={32} />
-          <h2>Loading your dashboard...</h2>
-          <p className="text-muted">Fetching real-time blood network data</p>
+      <div className="container py-5 text-center loading-wrapper">
+        <div className="hemo-loader-sphere">
+          <Activity className="animate-spin text-primary" size={36} />
         </div>
+        <h2 className="loading-title">Syncing HEMO Network...</h2>
+        <p className="loading-subtitle">Retrieving real-time blood allocation stream</p>
       </div>
     );
   }
 
   return (
     <div className="container dashboard-page">
-      <div className="welcome-banner card">
-        <div className="welcome-text">
-          <h1>Welcome back, <span className="text-primary">{user?.name || user?.email}</span></h1>
-          <p className="role-description">
-            Role: <strong>{user?.role}</strong> &bull; Connected to Supabase PostgreSQL Network
+      {/* Top Welcome Banner */}
+      <div className="hemo-banner-card">
+        <div className="banner-details">
+          <div className="banner-badge">
+            <span className="live-dot" />
+            <span>HEMO OPERATIONAL CONSOLE</span>
+          </div>
+          <h1 className="banner-title">
+            Welcome back, <span className="highlight-text">{user?.name || user?.email}</span>
+          </h1>
+          <p className="banner-meta">
+            Role: <strong>{user?.role}</strong> &bull; Supabase PostgreSQL Live Sync &bull; Secure Protocol
           </p>
         </div>
+
         {(user?.role === 'RECIPIENT' || user?.role === 'HOSPITAL' || user?.role === 'ADMIN') && (
-          <Link to="/blood-requests/new" className="btn btn-primary">
+          <Link to="/blood-requests/new" className="btn btn-primary btn-banner-cta">
             <PlusCircle size={18} />
             <span>Create Blood Request</span>
           </Link>
@@ -131,95 +137,100 @@ const Dashboard = () => {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <div className="card stat-card">
-          <div className="stat-icon stat-icon-red">
-            <Activity size={24} />
+      {/* Metrics Grid */}
+      <div className="hemo-metrics-grid">
+        <div className="metric-box-card">
+          <div className="metric-box-top">
+            <span className="metric-box-label">TOTAL REQUESTS</span>
+            <div className="metric-box-icon red"><Activity size={18} /></div>
           </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.totalRequests}</div>
-            <div className="stat-label">Blood Requests</div>
-          </div>
+          <div className="metric-box-val">{stats.totalRequests}</div>
+          <div className="metric-box-sub">Registered across network</div>
         </div>
 
-        <div className="card stat-card">
-          <div className="stat-icon stat-icon-amber">
-            <AlertTriangle size={24} />
+        <div className="metric-box-card">
+          <div className="metric-box-top">
+            <span className="metric-box-label">ACTIVE / PENDING</span>
+            <div className="metric-box-icon amber"><Clock size={18} /></div>
           </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.pendingRequests + stats.matchedRequests}</div>
-            <div className="stat-label">Active / Pending</div>
-          </div>
+          <div className="metric-box-val">{stats.pendingRequests + stats.matchedRequests}</div>
+          <div className="metric-box-sub">Seeking immediate match</div>
         </div>
 
-        <div className="card stat-card">
-          <div className="stat-icon stat-icon-emerald">
-            <CheckCircle2 size={24} />
+        <div className="metric-box-card">
+          <div className="metric-box-top">
+            <span className="metric-box-label">ACCEPTED MATCHES</span>
+            <div className="metric-box-icon emerald"><CheckCircle2 size={18} /></div>
           </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.acceptedRequests}</div>
-            <div className="stat-label">Accepted Matches</div>
-          </div>
+          <div className="metric-box-val">{stats.acceptedRequests}</div>
+          <div className="metric-box-sub">Donors actively dispatched</div>
         </div>
 
-        <div className="card stat-card">
-          <div className="stat-icon stat-icon-blue">
-            <Bell size={24} />
+        <div className="metric-box-card">
+          <div className="metric-box-top">
+            <span className="metric-box-label">NOTIFICATIONS</span>
+            <div className="metric-box-icon blue"><Bell size={18} /></div>
           </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.unreadNotifications}</div>
-            <div className="stat-label">Unread Notifications</div>
-          </div>
+          <div className="metric-box-val">{stats.unreadNotifications}</div>
+          <div className="metric-box-sub">Unread urgent alerts</div>
         </div>
 
         {['HOSPITAL', 'BLOOD_BANK', 'ADMIN'].includes(user?.role) && (
-          <div className="card stat-card">
-            <div className="stat-icon stat-icon-purple">
-              <Package size={24} />
+          <div className="metric-box-card">
+            <div className="metric-box-top">
+              <span className="metric-box-label">INVENTORY UNITS</span>
+              <div className="metric-box-icon purple"><Package size={18} /></div>
             </div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.totalStockUnits}</div>
-              <div className="stat-label">Inventory Units Available</div>
-            </div>
+            <div className="metric-box-val">{stats.totalStockUnits}</div>
+            <div className="metric-box-sub">Units available in reserve</div>
           </div>
         )}
       </div>
 
-      {/* Dashboard Main Grid */}
-      <div className="dashboard-content-grid">
-        {/* Recent Requests Section */}
-        <div className="card content-card">
-          <div className="card-header">
-            <h3>Recent Blood Requests</h3>
-            <Link to="/blood-requests" className="header-link">View All <ArrowRight size={14} /></Link>
+      {/* Main Content Grid */}
+      <div className="dashboard-content-split">
+        {/* Left Column: Recent Requests Table */}
+        <div className="hemo-panel-card requests-panel">
+          <div className="panel-header-row">
+            <div>
+              <h3 className="panel-title">Active Blood Requests</h3>
+              <p className="panel-subtitle">Live emergency &amp; scheduled patient requisitions</p>
+            </div>
+            <Link to="/blood-requests" className="panel-action-link">
+              <span>View All</span>
+              <ArrowRight size={14} />
+            </Link>
           </div>
 
           {recentRequests.length === 0 ? (
-            <div className="empty-state">No blood requests found.</div>
+            <div className="panel-empty-state">No blood requests currently registered in system.</div>
           ) : (
-            <div className="table-responsive">
-              <table className="custom-table">
+            <div className="hemo-table-wrap">
+              <table className="hemo-table">
                 <thead>
                   <tr>
-                    <th>Patient</th>
-                    <th>Group</th>
-                    <th>Hospital</th>
-                    <th>Urgency</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th>PATIENT</th>
+                    <th>BLOOD</th>
+                    <th>HOSPITAL</th>
+                    <th>URGENCY</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentRequests.map((req) => (
                     <tr key={req.id}>
-                      <td className="font-bold">{req.recipientName}</td>
-                      <td><span className="blood-group-tag">{req.bloodGroup}</span></td>
-                      <td className="text-muted">{req.hospitalName}</td>
+                      <td className="patient-cell">{req.recipientName}</td>
+                      <td>
+                        <span className="hemo-blood-pill">{req.bloodGroup}</span>
+                      </td>
+                      <td className="hospital-cell">{req.hospitalName}</td>
                       <td>{getUrgencyBadge(req.urgency)}</td>
                       <td>{getStatusBadge(req.status)}</td>
                       <td>
-                        <Link to={`/blood-requests/${req.id}`} className="btn-table">Details</Link>
+                        <Link to={`/blood-requests/${req.id}`} className="btn-table-action">
+                          Details
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -229,24 +240,30 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Notifications Sidebar */}
-        <div className="card content-card">
-          <div className="card-header">
-            <h3>Recent Notifications</h3>
-            <Link to="/notifications" className="header-link">View All <ArrowRight size={14} /></Link>
+        {/* Right Column: Notifications Feed */}
+        <div className="hemo-panel-card notifs-panel">
+          <div className="panel-header-row">
+            <div>
+              <h3 className="panel-title">Emergency Feed</h3>
+              <p className="panel-subtitle">Real-time alerts &amp; match requests</p>
+            </div>
+            <Link to="/notifications" className="panel-action-link">
+              <span>Feed</span>
+              <ArrowRight size={14} />
+            </Link>
           </div>
 
           {recentNotifications.length === 0 ? (
-            <div className="empty-state">No notifications.</div>
+            <div className="panel-empty-state">No notifications to display.</div>
           ) : (
-            <div className="recent-notif-list">
+            <div className="notifs-feed-list">
               {recentNotifications.map((n) => (
-                <div key={n.id} className={`recent-notif-item ${!n.read ? 'unread' : ''}`}>
-                  <div className="notif-title-row">
-                    <span className="notif-title">{n.title}</span>
-                    <span className="notif-type-tag">{n.type}</span>
+                <div key={n.id} className={`notif-feed-item ${!n.read ? 'is-unread' : ''}`}>
+                  <div className="notif-top">
+                    <span className="notif-heading">{n.title}</span>
+                    <span className="notif-tag">{n.type}</span>
                   </div>
-                  <p className="notif-message">{n.message}</p>
+                  <p className="notif-body-txt">{n.message}</p>
                 </div>
               ))}
             </div>
@@ -256,161 +273,313 @@ const Dashboard = () => {
 
       <style>{`
         .dashboard-page {
-          padding-top: 1.5rem;
-          padding-bottom: 3rem;
+          padding: 2.5rem 1.5rem 5rem;
         }
-        .welcome-banner {
+
+        .loading-wrapper {
+          min-height: 60vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .hemo-loader-sphere {
+          width: 70px;
+          height: 70px;
+          border-radius: 50%;
+          background: rgba(225, 29, 72, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 1.5rem;
+          box-shadow: 0 0 30px rgba(225, 29, 72, 0.3);
+        }
+
+        .loading-title {
+          font-family: var(--font-heading);
+          font-size: 1.8rem;
+          color: #ffffff;
+          margin-bottom: 0.5rem;
+        }
+        .loading-subtitle {
+          color: var(--text-muted);
+          font-size: 0.9rem;
+        }
+
+        .hemo-banner-card {
+          background: linear-gradient(135deg, #14161c 0%, #0d0e12 100%);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: var(--radius-xl);
+          padding: 2.25rem 2.5rem;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 1.5rem;
-          background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
-          border-left: 4px solid var(--primary);
+          margin-bottom: 2rem;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+          flex-wrap: wrap;
+          gap: 1.5rem;
         }
-        .welcome-text h1 {
-          font-size: 1.5rem;
+
+        .banner-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          font-size: 0.72rem;
           font-weight: 800;
-          margin-bottom: 0.25rem;
+          letter-spacing: 0.1em;
+          color: var(--primary);
+          margin-bottom: 0.5rem;
         }
-        .text-primary { color: var(--primary); }
-        .role-description {
+        .live-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--primary);
+          box-shadow: 0 0 8px var(--primary);
+        }
+
+        .banner-title {
+          font-family: var(--font-heading);
+          font-size: clamp(1.6rem, 3vw, 2.2rem);
+          font-weight: 800;
+          color: #ffffff;
+          margin-bottom: 0.35rem;
+          letter-spacing: -0.02em;
+        }
+        .highlight-text { color: var(--primary); }
+
+        .banner-meta {
+          font-size: 0.85rem;
           color: var(--text-muted);
-          font-size: 0.875rem;
         }
-        .stats-grid {
+
+        .btn-banner-cta {
+          padding: 0.85rem 1.8rem;
+          font-size: 0.92rem;
+        }
+
+        .hemo-metrics-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 1rem;
-          margin-bottom: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+          gap: 1.25rem;
+          margin-bottom: 2rem;
         }
-        .stat-card {
+
+        .metric-box-card {
+          background: #111318;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: var(--radius-lg);
+          padding: 1.5rem;
+          transition: all 0.25s ease;
+        }
+        .metric-box-card:hover {
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-3px);
+        }
+
+        .metric-box-top {
           display: flex;
           align-items: center;
-          gap: 1rem;
-          padding: 1.25rem;
+          justify-content: space-between;
+          margin-bottom: 0.75rem;
         }
-        .stat-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: var(--radius-md);
+
+        .metric-box-label {
+          font-size: 0.7rem;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          color: var(--text-dim);
+        }
+
+        .metric-box-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: var(--radius-sm);
           display: flex;
           align-items: center;
           justify-content: center;
         }
-        .stat-icon-red { background: rgba(225, 29, 72, 0.15); color: #f43f5e; }
-        .stat-icon-amber { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-        .stat-icon-emerald { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-        .stat-icon-blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-        .stat-icon-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
-        .stat-value {
-          font-size: 1.5rem;
+        .metric-box-icon.red { background: rgba(225, 29, 72, 0.15); color: #ff4d6d; }
+        .metric-box-icon.amber { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .metric-box-icon.emerald { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .metric-box-icon.blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+        .metric-box-icon.purple { background: rgba(192, 132, 252, 0.15); color: #c084fc; }
+
+        .metric-box-val {
+          font-family: var(--font-heading);
+          font-size: 2.2rem;
           font-weight: 800;
+          color: #ffffff;
+          line-height: 1.1;
+          margin-bottom: 0.35rem;
         }
-        .stat-label {
-          font-size: 0.8125rem;
+
+        .metric-box-sub {
+          font-size: 0.78rem;
           color: var(--text-muted);
-          font-weight: 500;
         }
-        .dashboard-content-grid {
+
+        .dashboard-content-split {
           display: grid;
           grid-template-columns: 2fr 1fr;
-          gap: 1.5rem;
+          gap: 1.75rem;
         }
-        .card-header {
+
+        .hemo-panel-card {
+          background: #111318;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: var(--radius-xl);
+          padding: 2rem;
+        }
+
+        .panel-header-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 1rem;
-          padding-bottom: 0.75rem;
-          border-bottom: 1px solid var(--border);
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
-        .card-header h3 {
-          font-size: 1.125rem;
-          font-weight: 700;
+
+        .panel-title {
+          font-family: var(--font-heading);
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #ffffff;
         }
-        .header-link {
-          font-size: 0.8125rem;
-          color: var(--primary);
-          font-weight: 600;
-          display: flex;
+
+        .panel-subtitle {
+          font-size: 0.8rem;
+          color: var(--text-dim);
+        }
+
+        .panel-action-link {
+          display: inline-flex;
           align-items: center;
-          gap: 0.25rem;
+          gap: 0.35rem;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: var(--primary);
         }
-        .header-link:hover { text-decoration: underline; }
-        .custom-table {
+        .panel-action-link:hover { text-decoration: underline; }
+
+        .hemo-table-wrap {
+          overflow-x: auto;
+        }
+
+        .hemo-table {
           width: 100%;
           border-collapse: collapse;
           text-align: left;
-          font-size: 0.875rem;
         }
-        .custom-table th {
-          padding: 0.625rem 0.75rem;
-          color: var(--text-dim);
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          border-bottom: 1px solid var(--border);
-        }
-        .custom-table td {
-          padding: 0.75rem;
-          border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-        }
-        .blood-group-tag {
-          display: inline-block;
-          padding: 0.15rem 0.5rem;
-          border-radius: var(--radius-sm);
-          background: rgba(225, 29, 72, 0.15);
-          color: #fb7185;
+
+        .hemo-table th {
+          padding: 0.75rem 0.85rem;
+          font-size: 0.7rem;
           font-weight: 800;
-          font-size: 0.8125rem;
-        }
-        .btn-table {
-          padding: 0.25rem 0.625rem;
-          font-size: 0.75rem;
-          background: #334155;
-          color: white;
-          border-radius: var(--radius-sm);
-          font-weight: 600;
-        }
-        .btn-table:hover { background: var(--primary); }
-        .recent-notif-item {
-          padding: 0.75rem;
-          border-radius: var(--radius-md);
-          background: rgba(15, 23, 42, 0.6);
-          margin-bottom: 0.5rem;
-          border-left: 3px solid transparent;
-        }
-        .recent-notif-item.unread {
-          border-left-color: var(--primary);
-          background: rgba(225, 29, 72, 0.08);
-        }
-        .notif-title-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.25rem;
-        }
-        .notif-title {
-          font-size: 0.8125rem;
-          font-weight: 700;
-        }
-        .notif-type-tag {
-          font-size: 0.6875rem;
+          letter-spacing: 0.06em;
           color: var(--text-dim);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .notif-message {
-          font-size: 0.75rem;
+
+        .hemo-table td {
+          padding: 0.95rem 0.85rem;
+          font-size: 0.88rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .patient-cell {
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .hospital-cell {
           color: var(--text-muted);
-          line-height: 1.4;
+          font-size: 0.84rem;
         }
-        .empty-state {
-          padding: 2rem 1rem;
+
+        .hemo-blood-pill {
+          display: inline-block;
+          padding: 0.2rem 0.6rem;
+          background: rgba(225, 29, 72, 0.15);
+          color: #ff4d6d;
+          border: 1px solid rgba(225, 29, 72, 0.3);
+          border-radius: var(--radius-sm);
+          font-size: 0.8rem;
+          font-weight: 800;
+        }
+
+        .btn-table-action {
+          padding: 0.35rem 0.75rem;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: var(--radius-full);
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: #ffffff;
+          transition: all 0.2s;
+        }
+        .btn-table-action:hover {
+          background: var(--primary);
+          border-color: var(--primary);
+        }
+
+        .notifs-feed-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.85rem;
+        }
+
+        .notif-feed-item {
+          padding: 1rem;
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: var(--radius-md);
+          transition: all 0.2s;
+        }
+
+        .notif-feed-item.is-unread {
+          border-left: 3px solid var(--primary);
+          background: rgba(225, 29, 72, 0.05);
+        }
+
+        .notif-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 0.35rem;
+        }
+
+        .notif-heading {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .notif-tag {
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: var(--text-dim);
+          text-transform: uppercase;
+        }
+
+        .notif-body-txt {
+          font-size: 0.8rem;
+          color: var(--text-muted);
+          line-height: 1.45;
+        }
+
+        .panel-empty-state {
+          padding: 2.5rem 1rem;
           text-align: center;
           color: var(--text-dim);
-          font-size: 0.875rem;
+          font-size: 0.88rem;
         }
-        @media (max-width: 900px) {
-          .dashboard-content-grid { grid-template-columns: 1fr; }
-          .welcome-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
+
+        @media (max-width: 950px) {
+          .dashboard-content-split { grid-template-columns: 1fr; }
+          .hemo-banner-card { flex-direction: column; align-items: flex-start; }
         }
       `}</style>
     </div>

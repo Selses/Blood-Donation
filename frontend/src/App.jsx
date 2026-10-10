@@ -1,8 +1,10 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Lenis from 'lenis';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -12,15 +14,52 @@ import BloodRequestDetails from './pages/BloodRequestDetails';
 import Notifications from './pages/Notifications';
 import Inventory from './pages/Inventory';
 
+// Smooth Scroll & Route Reset Helper
+function SmoothScrollManager({ children }) {
+  const location = useLocation();
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1.1,
+      touchMultiplier: 1.5,
+      infinite: false
+    });
+
+    let animationFrameId;
+    function raf(time) {
+      lenis.raf(time);
+      animationFrameId = requestAnimationFrame(raf);
+    }
+    animationFrameId = requestAnimationFrame(raf);
+
+    // Scroll to top smoothly on navigation
+    lenis.scrollTo(0, { immediate: true });
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      lenis.destroy();
+    };
+  }, [location.pathname]);
+
+  return children;
+}
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="app-layout">
-          <Navbar />
-          <main className="main-content">
+        <SmoothScrollManager>
+          <div className="app-layout">
+            <Navbar />
+            <main className="main-content">
             <Routes>
-              {/* Public Routes */}
+              {/* Public Landing & Auth Routes */}
+              <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
@@ -43,12 +82,13 @@ function App() {
               </Route>
 
               {/* Fallback Redirect */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>
-      </BrowserRouter>
-    </AuthProvider>
+      </SmoothScrollManager>
+    </BrowserRouter>
+  </AuthProvider>
   );
 }
 

@@ -20,6 +20,12 @@ public class RegisterRequestDTO {
 
     private String phone;
 
+    private String bloodGroup;
+
+    private String city;
+
+    private String address;
+
     private UserRole role = UserRole.DONOR;
 
     public RegisterRequestDTO() {
@@ -63,6 +69,30 @@ public class RegisterRequestDTO {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getBloodGroup() {
+        return bloodGroup;
+    }
+
+    public void setBloodGroup(String bloodGroup) {
+        this.bloodGroup = bloodGroup;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public UserRole getRole() {

@@ -1,83 +1,58 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { authService } from '../services/authService';
-import { HeartHandshake, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, AlertCircle, Shield } from 'lucide-react';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
+    bloodGroup: 'O+',
+    role: 'DONOR',
     phone: '',
-    role: 'DONOR'
+    address: '',
+    city: '',
+    state: ''
   });
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [e.target.name]: e.target.value
-    }));
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
-
     setLoading(true);
     try {
-      // 1. Register with backend API
-      await authService.register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone,
-        role: formData.role
-      });
-
-      setSuccess('Account created successfully! Logging you in...');
-
-      // 2. Automatically log in and navigate to dashboard
-      setTimeout(async () => {
-        try {
-          await login(formData.email, formData.password);
-          navigate('/dashboard');
-        } catch (loginErr) {
-          navigate('/login');
-        }
-      }, 1000);
+      await register(formData);
+      navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || 'Registration failed. Please check your data.');
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="register-wrapper">
-      <div className="register-card card">
-        <div className="register-header">
-          <div className="register-icon">
-            <HeartHandshake size={32} color="#e11d48" />
-          </div>
-          <h1>Create an Account</h1>
-          <p>Join the Blood Donation Network to save lives</p>
+    <div className="hemo-register-wrapper">
+      <div className="auth-ambient-glow" />
+
+      <div className="hemo-register-card">
+        <div className="auth-header">
+          <Link to="/" className="auth-brand-logo">
+            <span>HEMO</span>
+            <span className="brand-reg">&copy;</span>
+          </Link>
+          <h1 className="auth-title">Join The Mission</h1>
+          <p className="auth-subtitle">Register to donate or manage life-saving blood supplies</p>
         </div>
 
         {error && (
@@ -87,21 +62,14 @@ const Register = () => {
           </div>
         )}
 
-        {success && (
-          <div className="alert alert-success">
-            <CheckCircle2 size={18} />
-            <span>{success}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Full Name</label>
+        <form onSubmit={handleSubmit} className="register-form-grid">
+          <div className="form-group col-span-2">
+            <label className="form-label">FULL NAME / ENTITY NAME</label>
             <input
               type="text"
               name="name"
               className="form-input"
-              placeholder="e.g. John Doe"
+              placeholder="e.g. John Doe / City Blood Bank"
               value={formData.name}
               onChange={handleChange}
               required
@@ -109,7 +77,41 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label">ACCOUNT ROLE</label>
+            <select
+              name="role"
+              className="form-select"
+              value={formData.role}
+              onChange={handleChange}
+            >
+              <option value="DONOR">Donor</option>
+              <option value="RECIPIENT">Recipient</option>
+              <option value="HOSPITAL">Hospital</option>
+              <option value="BLOOD_BANK">Blood Bank</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">BLOOD GROUP</label>
+            <select
+              name="bloodGroup"
+              className="form-select"
+              value={formData.bloodGroup}
+              onChange={handleChange}
+            >
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">EMAIL ADDRESS</label>
             <input
               type="email"
               name="email"
@@ -121,153 +123,165 @@ const Register = () => {
             />
           </div>
 
-          <div className="form-row">
-            <div className="form-group flex-1">
-              <label className="form-label">Phone Number</label>
-              <input
-                type="tel"
-                name="phone"
-                className="form-input"
-                placeholder="9876543210"
-                value={formData.phone}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group flex-1">
-              <label className="form-label">Account Role</label>
-              <select
-                name="role"
-                className="form-input"
-                value={formData.role}
-                onChange={handleChange}
-              >
-                <option value="DONOR">Donor</option>
-                <option value="RECIPIENT">Recipient</option>
-                <option value="HOSPITAL">Hospital</option>
-                <option value="BLOOD_BANK">Blood Bank</option>
-              </select>
-            </div>
+          <div className="form-group">
+            <label className="form-label">PHONE NUMBER</label>
+            <input
+              type="tel"
+              name="phone"
+              className="form-input"
+              placeholder="+1 555-0199"
+              value={formData.phone}
+              onChange={handleChange}
+            />
           </div>
 
-          <div className="form-row">
-            <div className="form-group flex-1">
-              <label className="form-label">Password</label>
-              <input
-                type="password"
-                name="password"
-                className="form-input"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group flex-1">
-              <label className="form-label">Confirm Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                className="form-input"
-                placeholder="••••••••"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <div className="form-group col-span-2">
+            <label className="form-label">PASSWORD</label>
+            <input
+              type="password"
+              name="password"
+              className="form-input"
+              placeholder="••••••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary register-btn"
-            disabled={loading}
-          >
-            <UserPlus size={18} />
-            <span>{loading ? 'Creating Account...' : 'Register'}</span>
-          </button>
+          <div className="form-group col-span-2">
+            <label className="form-label">CITY & REGION</label>
+            <input
+              type="text"
+              name="city"
+              className="form-input"
+              placeholder="e.g. Trichy, Tamil Nadu"
+              value={formData.city}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="col-span-2">
+            <button
+              type="submit"
+              className="btn btn-primary register-submit-btn"
+              disabled={loading}
+            >
+              <span>{loading ? 'Creating Profile...' : 'Complete Registration'}</span>
+              <ArrowRight size={18} />
+            </button>
+          </div>
         </form>
 
-        <div className="footer-action">
-          <span>Already have an account? </span>
-          <Link to="/login" className="link-highlight">Sign In</Link>
+        <div className="auth-footer-link">
+          <span>Already registered? </span>
+          <Link to="/login" className="highlight-cta">Sign In</Link>
         </div>
       </div>
 
       <style>{`
-        .register-wrapper {
-          min-height: 100vh;
+        .hemo-register-wrapper {
+          min-height: calc(100vh - 80px);
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 1.5rem;
-          background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 70%);
+          padding: 3.5rem 1.5rem;
+          background: #08080a;
+          position: relative;
+          overflow: hidden;
         }
-        .register-card {
+
+        .auth-ambient-glow {
+          position: absolute;
+          width: 550px;
+          height: 550px;
+          background: radial-gradient(circle, rgba(225, 29, 72, 0.16) 0%, transparent 70%);
+          border-radius: 50%;
+          filter: blur(120px);
+          pointer-events: none;
+        }
+
+        .hemo-register-card {
+          position: relative;
+          z-index: 1;
           width: 100%;
-          max-width: 500px;
-          border-radius: var(--radius-lg);
-          padding: 2.25rem;
-          box-shadow: var(--shadow-glow), var(--shadow-lg);
+          max-width: 600px;
+          background: #111318;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: var(--radius-xl);
+          padding: 2.75rem 2.5rem;
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(20px);
         }
-        .register-header {
+
+        .auth-header {
           text-align: center;
-          margin-bottom: 1.75rem;
+          margin-bottom: 2rem;
         }
-        .register-icon {
-          width: 60px;
-          height: 60px;
-          background: rgba(225, 29, 72, 0.15);
-          border: 1px solid rgba(225, 29, 72, 0.3);
-          border-radius: var(--radius-full);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto 1rem;
+
+        .auth-brand-logo {
+          font-family: var(--font-heading);
+          font-size: 1.8rem;
+          font-weight: 900;
+          color: #ffffff;
+          display: inline-flex;
+          align-items: baseline;
+          gap: 0.2rem;
+          margin-bottom: 0.75rem;
         }
-        .register-header h1 {
-          font-size: 1.5rem;
+        .brand-reg {
+          font-size: 0.8rem;
+          color: var(--primary);
+        }
+
+        .auth-title {
+          font-family: var(--font-heading);
+          font-size: 1.6rem;
           font-weight: 800;
-          color: white;
+          color: #ffffff;
           margin-bottom: 0.35rem;
         }
-        .register-header p {
+
+        .auth-subtitle {
+          font-size: 0.85rem;
           color: var(--text-muted);
-          font-size: 0.875rem;
         }
-        .form-row {
-          display: flex;
-          gap: 1rem;
+
+        .register-form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.15rem;
         }
-        .flex-1 {
-          flex: 1;
+
+        .col-span-2 {
+          grid-column: span 2;
         }
-        .register-btn {
+
+        .register-submit-btn {
           width: 100%;
-          padding: 0.8125rem;
-          margin-top: 0.75rem;
+          padding: 0.9rem;
+          margin-top: 0.5rem;
+          font-size: 0.95rem;
         }
-        .footer-action {
+
+        .auth-footer-link {
           margin-top: 1.75rem;
-          padding-top: 1.25rem;
-          border-top: 1px solid var(--border);
           text-align: center;
-          font-size: 0.875rem;
+          font-size: 0.85rem;
           color: var(--text-muted);
         }
-        .link-highlight {
+
+        .highlight-cta {
           color: var(--primary);
           font-weight: 700;
-          text-decoration: none;
         }
-        .link-highlight:hover {
+        .highlight-cta:hover {
           text-decoration: underline;
         }
-        @media (max-width: 540px) {
-          .form-row {
-            flex-direction: column;
-            gap: 0;
-          }
+
+        @media (max-width: 600px) {
+          .register-form-grid { grid-template-columns: 1fr; }
+          .col-span-2 { grid-column: span 1; }
+          .hemo-register-card { padding: 2rem 1.5rem; }
         }
       `}</style>
     </div>

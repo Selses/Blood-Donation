@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { HeartHandshake, LogIn, AlertCircle } from 'lucide-react';
+import { ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -35,14 +35,18 @@ const Login = () => {
   };
 
   return (
-    <div className="login-wrapper">
-      <div className="login-card card">
-        <div className="login-header">
-          <div className="login-icon">
-            <HeartHandshake size={32} color="#e11d48" />
-          </div>
-          <h1>Blood Donation Network</h1>
-          <p>Emergency Matching & Inventory Management</p>
+    <div className="hemo-auth-wrapper">
+      <div className="auth-ambient-glow" />
+
+      <div className="hemo-auth-card">
+        {/* Brand Header */}
+        <div className="auth-header">
+          <Link to="/" className="auth-brand-logo">
+            <span>HEMO</span>
+            <span className="brand-reg">&copy;</span>
+          </Link>
+          <h1 className="auth-title">Welcome Back</h1>
+          <p className="auth-subtitle">Sign in to your verified donation workspace</p>
         </div>
 
         {error && (
@@ -52,13 +56,13 @@ const Login = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label">EMAIL ADDRESS</label>
             <input 
               type="email"
               className="form-input"
-              placeholder="name@example.com"
+              placeholder="e.g. physician@hospital.org"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -66,11 +70,14 @@ const Login = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <div className="form-label-split">
+              <label className="form-label">PASSWORD</label>
+              <span className="forgot-hint">Encrypted SSL</span>
+            </div>
             <input 
               type="password"
               className="form-input"
-              placeholder="••••••••"
+              placeholder="••••••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -79,114 +86,178 @@ const Login = () => {
 
           <button 
             type="submit" 
-            className="btn btn-primary login-btn"
+            className="btn btn-primary auth-submit-btn"
             disabled={loading}
           >
-            <LogIn size={18} />
-            <span>{loading ? 'Logging in...' : 'Sign In'}</span>
+            <span>{loading ? 'Authenticating...' : 'Sign In To Network'}</span>
+            <ArrowRight size={18} />
           </button>
         </form>
 
-        <div className="quick-access">
-          <p className="quick-title">QUICK DEMO LOGINS:</p>
-          <div className="quick-buttons">
-            <button type="button" onClick={() => handleQuickDemo('ravi.wf@test.com', 'Password@123')} className="btn btn-secondary btn-sm">Donor (Ravi)</button>
-            <button type="button" onClick={() => handleQuickDemo('arun.wf@test.com', 'Password@123')} className="btn btn-secondary btn-sm">Recipient (Arun)</button>
-            <button type="button" onClick={() => handleQuickDemo('tgh.wf@test.com', 'Password@123')} className="btn btn-secondary btn-sm">Hospital (Trichy GH)</button>
-            <button type="button" onClick={() => handleQuickDemo('admin@test.com', 'Password@123')} className="btn btn-secondary btn-sm">Admin</button>
+        {/* Quick Demo Login Preset Buttons */}
+        <div className="auth-quick-roles">
+          <span className="quick-roles-title">QUICK DEMO PROFILES</span>
+          <div className="quick-roles-grid">
+            <button type="button" onClick={() => handleQuickDemo('ravi.wf@test.com', 'Password@123')} className="role-chip">
+              Donor (Ravi)
+            </button>
+            <button type="button" onClick={() => handleQuickDemo('arun.wf@test.com', 'Password@123')} className="role-chip">
+              Recipient (Arun)
+            </button>
+            <button type="button" onClick={() => handleQuickDemo('tgh.wf@test.com', 'Password@123')} className="role-chip">
+              Hospital (Trichy GH)
+            </button>
+            <button type="button" onClick={() => handleQuickDemo('admin@test.com', 'Password@123')} className="role-chip">
+              Admin Portal
+            </button>
           </div>
         </div>
 
-        <div className="footer-action">
-          <span>Don't have an account? </span>
-          <a href="/register" className="link-highlight">Register Now</a>
+        <div className="auth-footer-link">
+          <span>New to the HEMO Network? </span>
+          <Link to="/register" className="highlight-cta">Create Account</Link>
         </div>
       </div>
 
       <style>{`
-        .login-wrapper {
-          min-height: 100vh;
+        .hemo-auth-wrapper {
+          min-height: calc(100vh - 80px);
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 1.5rem;
-          background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 70%);
+          padding: 3rem 1.5rem;
+          background: #08080a;
+          position: relative;
+          overflow: hidden;
         }
-        .login-card {
+
+        .auth-ambient-glow {
+          position: absolute;
+          width: 500px;
+          height: 500px;
+          background: radial-gradient(circle, rgba(225, 29, 72, 0.18) 0%, transparent 70%);
+          border-radius: 50%;
+          filter: blur(100px);
+          pointer-events: none;
+        }
+
+        .hemo-auth-card {
+          position: relative;
+          z-index: 1;
           width: 100%;
-          max-width: 440px;
-          border-radius: var(--radius-lg);
-          padding: 2.25rem;
-          box-shadow: var(--shadow-glow), var(--shadow-lg);
+          max-width: 460px;
+          background: #111318;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: var(--radius-xl);
+          padding: 2.75rem 2.5rem;
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(20px);
         }
-        .login-header {
+
+        .auth-header {
           text-align: center;
           margin-bottom: 2rem;
         }
-        .login-icon {
-          width: 60px;
-          height: 60px;
-          background: rgba(225, 29, 72, 0.15);
-          border: 1px solid rgba(225, 29, 72, 0.3);
-          border-radius: var(--radius-full);
+
+        .auth-brand-logo {
+          font-family: var(--font-heading);
+          font-size: 1.8rem;
+          font-weight: 900;
+          color: #ffffff;
+          display: inline-flex;
+          align-items: baseline;
+          gap: 0.2rem;
+          margin-bottom: 0.75rem;
+        }
+        .brand-reg {
+          font-size: 0.8rem;
+          color: var(--primary);
+        }
+
+        .auth-title {
+          font-family: var(--font-heading);
+          font-size: 1.6rem;
+          font-weight: 800;
+          color: #ffffff;
+          margin-bottom: 0.35rem;
+          letter-spacing: -0.02em;
+        }
+
+        .auth-subtitle {
+          font-size: 0.85rem;
+          color: var(--text-muted);
+        }
+
+        .form-label-split {
           display: flex;
           align-items: center;
-          justify-content: center;
-          margin: 0 auto 1rem;
+          justify-content: space-between;
         }
-        .login-header h1 {
-          font-size: 1.5rem;
-          font-weight: 800;
-          color: white;
-          margin-bottom: 0.35rem;
-        }
-        .login-header p {
-          color: var(--text-muted);
-          font-size: 0.875rem;
-        }
-        .login-btn {
-          width: 100%;
-          padding: 0.8125rem;
-          margin-top: 0.5rem;
-        }
-        .quick-access {
-          margin-top: 2rem;
-          padding-top: 1.5rem;
-          border-top: 1px solid var(--border);
-        }
-        .quick-title {
-          font-size: 0.75rem;
+        .forgot-hint {
+          font-size: 0.72rem;
           color: var(--text-dim);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          font-weight: 700;
+          font-weight: 600;
+        }
+
+        .auth-submit-btn {
+          width: 100%;
+          padding: 0.9rem;
+          margin-top: 0.75rem;
+          font-size: 0.95rem;
+        }
+
+        .auth-quick-roles {
+          margin-top: 2rem;
+          padding-top: 1.75rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .quick-roles-title {
+          display: block;
+          font-size: 0.7rem;
+          font-weight: 800;
+          letter-spacing: 0.1em;
+          color: var(--text-dim);
           margin-bottom: 0.75rem;
           text-align: center;
         }
-        .quick-buttons {
-          display: flex;
+
+        .quick-roles-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
           gap: 0.5rem;
-          flex-wrap: wrap;
         }
-        .btn-sm {
-          padding: 0.375rem 0.625rem;
+
+        .role-chip {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: var(--radius-sm);
+          color: var(--text-muted);
+          padding: 0.45rem 0.6rem;
           font-size: 0.75rem;
-          flex: 1;
-        }
-        .footer-action {
-          margin-top: 1.5rem;
-          padding-top: 1.25rem;
-          border-top: 1px solid var(--border);
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
           text-align: center;
-          font-size: 0.875rem;
+        }
+        .role-chip:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .auth-footer-link {
+          margin-top: 1.75rem;
+          text-align: center;
+          font-size: 0.85rem;
           color: var(--text-muted);
         }
-        .link-highlight {
+
+        .highlight-cta {
           color: var(--primary);
           font-weight: 700;
-          text-decoration: none;
         }
-        .link-highlight:hover {
+        .highlight-cta:hover {
           text-decoration: underline;
         }
       `}</style>

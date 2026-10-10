@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { notificationService } from '../services/notificationService';
 import { 
-  HeartHandshake, 
+  Heart, 
   LayoutDashboard, 
   Activity, 
   PlusCircle, 
@@ -12,7 +12,8 @@ import {
   LogOut, 
   User as UserIcon,
   Menu,
-  X
+  X,
+  ArrowRight
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -44,238 +45,284 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  if (!isAuthenticated) return null;
-
   const role = user?.role;
 
   const navLinkClass = (path) => {
     const isActive = location.pathname === path;
-    return `nav-link ${isActive ? 'active' : ''}`;
+    return `hemo-nav-link ${isActive ? 'active' : ''}`;
   };
 
   return (
-    <header className="main-navbar">
-      <div className="nav-container">
-        <Link to="/dashboard" className="nav-brand">
-          <div className="brand-icon">
-            <HeartHandshake size={24} color="#e11d48" />
-          </div>
-          <div className="brand-text">
-            <span>Blood</span>Connect
-          </div>
+    <header className="hemo-header">
+      <div className="container nav-container">
+        {/* Brand Logo matching HEMO© */}
+        <Link to="/" className="hemo-brand">
+          <span className="brand-title">HEMO</span>
+          <span className="brand-registered">&copy;</span>
         </Link>
 
-        <nav className={`nav-menu ${mobileMenuOpen ? 'open' : ''}`}>
-          <Link to="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setMobileMenuOpen(false)}>
-            <LayoutDashboard size={18} />
-            <span>Dashboard</span>
-          </Link>
+        {/* Navigation Links */}
+        <nav className={`hemo-nav-menu ${mobileMenuOpen ? 'open' : ''}`}>
+          {isAuthenticated ? (
+            <>
+              <Link to="/dashboard" className={navLinkClass('/dashboard')} onClick={() => setMobileMenuOpen(false)}>
+                <LayoutDashboard size={16} />
+                <span>Dashboard</span>
+              </Link>
 
-          <Link to="/blood-requests" className={navLinkClass('/blood-requests')} onClick={() => setMobileMenuOpen(false)}>
-            <Activity size={18} />
-            <span>Blood Requests</span>
-          </Link>
+              <Link to="/blood-requests" className={navLinkClass('/blood-requests')} onClick={() => setMobileMenuOpen(false)}>
+                <Activity size={16} />
+                <span>Blood Requests</span>
+              </Link>
 
-          {(role === 'RECIPIENT' || role === 'HOSPITAL' || role === 'ADMIN') && (
-            <Link to="/blood-requests/new" className={navLinkClass('/blood-requests/new')} onClick={() => setMobileMenuOpen(false)}>
-              <PlusCircle size={18} />
-              <span>Create Request</span>
-            </Link>
+              {(role === 'RECIPIENT' || role === 'HOSPITAL' || role === 'ADMIN') && (
+                <Link to="/blood-requests/new" className={navLinkClass('/blood-requests/new')} onClick={() => setMobileMenuOpen(false)}>
+                  <PlusCircle size={16} />
+                  <span>Create Request</span>
+                </Link>
+              )}
+
+              {(role === 'HOSPITAL' || role === 'BLOOD_BANK' || role === 'ADMIN') && (
+                <Link to="/inventory" className={navLinkClass('/inventory')} onClick={() => setMobileMenuOpen(false)}>
+                  <Package size={16} />
+                  <span>Inventory</span>
+                </Link>
+              )}
+
+              <Link to="/notifications" className={navLinkClass('/notifications')} onClick={() => setMobileMenuOpen(false)}>
+                <div className="notif-wrapper">
+                  <Bell size={16} />
+                  {unreadCount > 0 && <span className="notif-bubble">{unreadCount}</span>}
+                </div>
+                <span>Notifications</span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <a href="/#features" className="hemo-nav-link" onClick={() => setMobileMenuOpen(false)}>Services</a>
+              <a href="/#events" className="hemo-nav-link" onClick={() => setMobileMenuOpen(false)}>Events</a>
+              <a href="/#how-it-works" className="hemo-nav-link" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
+              <a href="/#faq" className="hemo-nav-link" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            </>
           )}
-
-          {(role === 'HOSPITAL' || role === 'BLOOD_BANK' || role === 'ADMIN') && (
-            <Link to="/inventory" className={navLinkClass('/inventory')} onClick={() => setMobileMenuOpen(false)}>
-              <Package size={18} />
-              <span>Inventory</span>
-            </Link>
-          )}
-
-          <Link to="/notifications" className={navLinkClass('/notifications')} onClick={() => setMobileMenuOpen(false)}>
-            <div className="notif-badge-wrapper">
-              <Bell size={18} />
-              {unreadCount > 0 && <span className="notif-bubble">{unreadCount}</span>}
-            </div>
-            <span>Notifications</span>
-          </Link>
         </nav>
 
-        <div className="nav-user">
-          <div className="user-info">
-            <div className="user-avatar">
-              <UserIcon size={16} />
+        {/* Right Action / Auth Area */}
+        <div className="hemo-nav-right">
+          {isAuthenticated ? (
+            <div className="user-profile-cluster">
+              <div className="user-text-meta">
+                <span className="user-name-txt">{user?.name || user?.email}</span>
+                <span className="user-role-txt">{role}</span>
+              </div>
+              <button onClick={handleLogout} className="btn-logout-icon" title="Sign Out">
+                <LogOut size={16} />
+              </button>
             </div>
-            <div className="user-details">
-              <div className="user-name">{user?.name || user?.email}</div>
-              <div className="user-role-badge">{role}</div>
+          ) : (
+            <div className="guest-action-cluster">
+              <Link to="/login" className="btn-login-ghost">
+                Sign In
+              </Link>
+              <Link to="/register" className="btn btn-pill-white btn-header-cta">
+                <span>Start Saving Lives</span>
+                <ArrowRight size={14} />
+              </Link>
             </div>
-          </div>
+          )}
 
-          <button onClick={handleLogout} className="btn-logout" title="Logout">
-            <LogOut size={18} />
-          </button>
-
-          <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          <button 
+            className="mobile-hamburger" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
 
       <style>{`
-        .main-navbar {
-          background: rgba(15, 23, 42, 0.85);
-          backdrop-filter: blur(12px);
-          border-bottom: 1px solid var(--border);
+        .hemo-header {
           position: sticky;
           top: 0;
-          z-index: 50;
+          z-index: 100;
+          background: rgba(8, 8, 10, 0.85);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.07);
         }
+
         .nav-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0.75rem 1.5rem;
           display: flex;
           align-items: center;
           justify-content: space-between;
+          padding-top: 1rem;
+          padding-bottom: 1rem;
         }
-        .nav-brand {
+
+        .hemo-brand {
           display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          font-weight: 800;
-          font-size: 1.25rem;
-          color: white;
+          align-items: baseline;
+          gap: 0.2rem;
+          font-family: var(--font-heading);
+          font-size: 1.6rem;
+          font-weight: 900;
+          letter-spacing: -0.04em;
+          color: #ffffff;
         }
-        .brand-icon {
-          background: rgba(225, 29, 72, 0.15);
-          border: 1px solid rgba(225, 29, 72, 0.3);
-          border-radius: var(--radius-md);
-          padding: 0.375rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .brand-text span {
+        .brand-registered {
+          font-size: 0.75rem;
           color: var(--primary);
         }
-        .nav-menu {
+
+        .hemo-nav-menu {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.6rem;
         }
-        .nav-link {
+
+        .hemo-nav-link {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 0.875rem;
-          border-radius: var(--radius-md);
-          color: var(--text-muted);
+          gap: 0.45rem;
+          padding: 0.5rem 1rem;
+          border-radius: var(--radius-full);
+          font-size: 0.84rem;
           font-weight: 600;
-          font-size: 0.875rem;
+          color: var(--text-muted);
           transition: all 0.2s ease;
         }
-        .nav-link:hover {
-          color: var(--text-main);
-          background: var(--bg-card);
+
+        .hemo-nav-link:hover {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.05);
         }
-        .nav-link.active {
-          color: white;
-          background: var(--bg-card-hover);
-          border: 1px solid var(--border);
+
+        .hemo-nav-link.active {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.09);
+          border: 1px solid rgba(255, 255, 255, 0.12);
         }
-        .notif-badge-wrapper {
+
+        .notif-wrapper {
           position: relative;
           display: flex;
           align-items: center;
         }
+
         .notif-bubble {
           position: absolute;
           top: -6px;
           right: -8px;
           background: var(--primary);
           color: white;
-          font-size: 0.6875rem;
-          font-weight: 700;
+          font-size: 0.65rem;
+          font-weight: 800;
           border-radius: var(--radius-full);
           padding: 0.1rem 0.35rem;
-          min-width: 16px;
+          min-width: 15px;
           text-align: center;
+          box-shadow: 0 0 10px var(--primary);
         }
-        .nav-user {
+
+        .hemo-nav-right {
           display: flex;
           align-items: center;
           gap: 1rem;
         }
-        .user-info {
+
+        .guest-action-cluster {
           display: flex;
           align-items: center;
-          gap: 0.625rem;
+          gap: 1rem;
         }
-        .user-avatar {
-          width: 32px;
-          height: 32px;
+
+        .btn-login-ghost {
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #ffffff;
+          padding: 0.5rem 0.75rem;
+          transition: opacity 0.2s;
+        }
+        .btn-login-ghost:hover { opacity: 0.8; }
+
+        .btn-header-cta {
+          padding: 0.55rem 1.15rem;
+          font-size: 0.82rem;
+        }
+
+        .user-profile-cluster {
+          display: flex;
+          align-items: center;
+          gap: 0.85rem;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          padding: 0.35rem 0.85rem;
           border-radius: var(--radius-full);
-          background: #334155;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--text-muted);
         }
-        .user-details {
+
+        .user-text-meta {
           display: flex;
           flex-direction: column;
         }
-        .user-name {
-          font-size: 0.8125rem;
+
+        .user-name-txt {
+          font-size: 0.8rem;
           font-weight: 700;
-          color: var(--text-main);
-          max-width: 140px;
+          color: #ffffff;
+          max-width: 120px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        .user-role-badge {
-          font-size: 0.6875rem;
+
+        .user-role-txt {
+          font-size: 0.65rem;
           font-weight: 800;
           color: var(--primary);
-          letter-spacing: 0.05em;
+          letter-spacing: 0.06em;
         }
-        .btn-logout {
+
+        .btn-logout-icon {
           background: transparent;
           border: none;
           color: var(--text-dim);
           cursor: pointer;
-          padding: 0.5rem;
-          border-radius: var(--radius-md);
           display: flex;
           align-items: center;
+          justify-content: center;
+          padding: 0.3rem;
+          border-radius: 50%;
           transition: all 0.2s ease;
         }
-        .btn-logout:hover {
+
+        .btn-logout-icon:hover {
           color: var(--danger);
-          background: var(--danger-bg);
+          background: rgba(239, 68, 68, 0.15);
         }
-        .mobile-toggle {
+
+        .mobile-hamburger {
           display: none;
           background: transparent;
           border: none;
-          color: var(--text-main);
+          color: #ffffff;
           cursor: pointer;
         }
-        @media (max-width: 860px) {
-          .mobile-toggle { display: block; }
-          .user-details { display: none; }
-          .nav-menu {
+
+        @media (max-width: 900px) {
+          .mobile-hamburger { display: block; }
+          .hemo-nav-menu {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
-            background: var(--bg-card);
+            background: #0d0f14;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             flex-direction: column;
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
+            padding: 1.5rem;
             display: none;
           }
-          .nav-menu.open { display: flex; }
+          .hemo-nav-menu.open { display: flex; }
+          .user-text-meta { display: none; }
         }
       `}</style>
     </header>

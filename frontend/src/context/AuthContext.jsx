@@ -27,13 +27,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async (userData) => {
+    setLoading(true);
+    try {
+      const data = await authService.register(userData);
+      const authUser = {
+        email: data.email,
+        role: data.role,
+        name: data.name || data.email,
+        id: data.userId || data.id
+      };
+      if (data.accessToken) {
+        localStorage.setItem('token', data.accessToken);
+        localStorage.setItem('user', JSON.stringify(authUser));
+        setUser(authUser);
+      }
+      return authUser;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     authService.logout();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,15 +2,16 @@ import axios from 'axios';
 
 const getBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+    const rawUrl = import.meta.env.VITE_API_URL;
+    return rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
   }
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://localhost:8081';
     }
-    // If frontend is hosted on Render, fallback cleanly to current origin or same host
-    return window.location.origin;
+    // Fallback if accessed via custom domain/host
+    return 'https://blood-donation-backend-qdci.onrender.com';
   }
   return 'http://localhost:8081';
 };

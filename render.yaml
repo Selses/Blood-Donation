@@ -17,6 +17,12 @@ services:
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: blood-donation-backend
+          property: host
     routes:
       - type: rewrite
         source: /*
